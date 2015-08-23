@@ -6,6 +6,8 @@ Output python serialized objects
 
 import os, json, pprint, cPickle
 
+import indicoio
+
 from blank.data_utils import DATA_DIR, ELEMENT_MAPPING
 
 
@@ -17,20 +19,20 @@ def load_file(data_name):
     """
     def dec(func):
         def wrapper(*args, **kwargs):
-            with open(os.path.join(DATA_DIR, data_name)) as f:
+            with open(os.path.join(DATA_DIR, data_name), 'rb') as f:
                 data = func(json.loads(f.read()), *args, **kwargs)
                 cache(data, os.path.join(
-                    DATA_DIR, os.path.basename(data_name) + ".p")
+                    DATA_DIR, data_name.split(".")[0] + ".p")
                 )
                 return data
         return wrapper
-    return func
+    return dec
 
 def cache(data, filename):
     dirname = os.path.dirname(filename)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
-    cPickle.dump(data, filename)
+    cPickle.dump(data, open(filename, 'wb'))
 
 @load_file("atomic_ionization_output.json")
 def parse_ionization(data):
@@ -48,6 +50,23 @@ def parse_ionization(data):
         formatted[element_name] = element
     return formatted
 
+@load_file("physical_constants.json")
+def parse_physical_constants(data):
+    quantities = []
+    elements = []
+    for element in data["constant"]:
+        if not element:
+            continue
+        quantities.append(element.pop("Quantity "))
+        elements.append(element)
+
+    list_keywords = indicoio.keywords(quantities, top_n=10)
+    for i, element in enumerate(elements):
+        element['Keywords'] = list_keywords[i].keys()
+
+    return elements
+
+
 @load_file("atomic_weight_compositions.json")
 def parse_isotopes(data):
     formatted = {}
@@ -58,4 +77,4 @@ def parse_isotopes(data):
 
 
 if __name__ == "__main__":
-    parse_atomic_ionization()
+    print parse_physical_constants()
