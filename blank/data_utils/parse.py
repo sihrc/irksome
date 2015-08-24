@@ -8,10 +8,10 @@ import os, json, pprint, cPickle
 
 import indicoio
 
-from blank.data_utils import DATA_DIR, ELEMENT_MAPPING
+from blank.data_utils import DATA_DIR, OUTPUT_DIR, ELEMENT_MAPPING, SYMBOL_MAPPING
 
 
-def load_file(data_name):
+def load_file(data_name, should_cache=True):
     """
     load_file loads contents from file 'data_name'
     @param 'data_name' - string
@@ -21,9 +21,10 @@ def load_file(data_name):
         def wrapper(*args, **kwargs):
             with open(os.path.join(DATA_DIR, data_name), 'rb') as f:
                 data = func(json.loads(f.read()), *args, **kwargs)
-                cache(data, os.path.join(
-                    DATA_DIR, data_name.split(".")[0] + ".p")
-                )
+                if should_cache:
+                    cache(data, os.path.join(
+                        OUTPUT_DIR, data_name.split(".")[0] + ".p")
+                    )
                 return data
         return wrapper
     return dec
@@ -81,7 +82,7 @@ def parse_thermochemical(data):
     for spec in data["species"]:
         elem = spec.pop("molecular formula")
         filename = spec.pop("file")
-        @load_file(os.path.join("srd_13", filename))
+        @load_file(os.path.join("srd_13", filename), should_cache=False)
         def parse_molecule(data):
             return dict((each["T"], each["values"]) for each in data["data"] if "T" in each)
         spec["thermochemical"] = parse_molecule()
@@ -89,4 +90,7 @@ def parse_thermochemical(data):
     return formatted
 
 if __name__ == "__main__":
-    print parse_thermochemical()
+    parse_ionization()
+    parse_isotopes()
+    parse_physical_constants()
+    parse_thermochemical()
