@@ -75,6 +75,18 @@ def parse_isotopes(data):
         formatted[element_name] = element
     return formatted
 
+@load_file(os.path.join("srd_13","srd13_janaf.species.json"))
+def parse_thermochemical(data):
+    formatted = {}
+    for spec in data["species"]:
+        elem = spec.pop("molecular formula")
+        filename = spec.pop("file")
+        @load_file(os.path.join("srd_13", filename))
+        def parse_molecule(data):
+            return dict((each["T"], each["values"]) for each in data["data"] if "T" in each)
+        spec["thermochemical"] = parse_molecule()
+        formatted[elem] = spec
+    return formatted
 
 if __name__ == "__main__":
-    print parse_physical_constants()
+    print parse_thermochemical()
