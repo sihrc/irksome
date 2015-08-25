@@ -2,14 +2,12 @@
 Parses data files from nist
 Output python serialized objects
 """
-# TODO - combine all atomic references into 1 dictionary
-
-import os, json, pprint, cPickle
+import os, json
 
 import indicoio
 
 from blank.data_utils import DATA_DIR, OUTPUT_DIR, ELEMENT_MAPPING, SYMBOL_MAPPING
-
+from blank.data_utils import cache
 
 def load_file(data_name, should_cache=True):
     """
@@ -29,11 +27,6 @@ def load_file(data_name, should_cache=True):
         return wrapper
     return dec
 
-def cache(data, filename):
-    dirname = os.path.dirname(filename)
-    if not os.path.exists(dirname):
-        os.makedirs(dirname)
-    cPickle.dump(data, open(filename, 'wb'))
 
 @load_file("atomic_ionization_output.json")
 def parse_ionization(data):
