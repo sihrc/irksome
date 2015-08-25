@@ -1,7 +1,7 @@
 """
 Data utility constants
 """
-import os
+import os, cPickle
 
 DATA_DIR = os.path.abspath("../../data")
 OUTPUT_DIR = os.path.abspath("../../data/parsed")
@@ -131,3 +131,9 @@ SYMBOL_MAPPING = {
 }
 ELEMENT_MAPPING = dict((value, key) for key, value in SYMBOL_MAPPING.iteritems())
 ELEMENT_MAPPING["Aluminium"] = "Al"
+
+def cache(data, filename):
+    dirname = os.path.dirname(filename)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    cPickle.dump(data, open(filename, 'wb'))
