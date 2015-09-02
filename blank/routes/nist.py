@@ -47,6 +47,7 @@ class NISTHandler(Handler):
         if len(results) > 3:
             for i in xrange(len(results)):
                 results[i] = fuzz.ratio(keywords, results[i][1]), results[i][1], results[i][2]
-        self.respond(sorted(results, reverse=True)[:5])
+
+        self.respond([{result[1]: result[2]} for result in sorted(results, reverse=True)[:5]])
 
 NistRoute = (r"/(?P<action>[a-zA-Z]+)?", NISTHandler)
