@@ -1,13 +1,13 @@
 """
 NIST Request Handler
 """
-import json, traceback, logging
+import json, traceback, logging, os
 
 import tornado.web
 
 from blank.routes import NISTError
 
-
+logging.basicConfig(filename=os.path.join(os.path.dirname(__file__), "..", "..", 'out.log'))
 LOGGER = logging.getLogger("")
 class Handler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -28,7 +28,7 @@ class Handler(tornado.web.RequestHandler):
                  __file__,
                  traceback.format_exc()
             )
-            error = NISTError("Oh madah fuck you, broke servah", 503)
+            error = NISTError("Oh madah fuck you, broke servah", 500)
             self.respond(error.message, error.status)
 
 

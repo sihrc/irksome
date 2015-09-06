@@ -17,6 +17,14 @@ KEYWORDS = data.ELEMENT_DATA.keys()
 def filter_numbers(text):
     return re.sub("[^(0-9)^ ]", "", text)
 
+def preformat(entry):
+    entry = entry.strip()
+    entry = SYMBOL_MAPPING.get(entry, entry)
+    result = spelling(entry)
+    if not result:
+        return ""
+    return result
+    
 class NISTHandler(Handler):
     @unpack("query")
     @type_check(str)
@@ -24,7 +32,7 @@ class NISTHandler(Handler):
         numbers = filter_numbers(query.lower())
         keywords = [numbers] + [
             SYMBOL_MAPPING.get(key, key)
-                for key in indicoio.keywords(" ".join(map(spelling, query.lower().split(" "))), top_n=100).keys()
+                for key in indicoio.keywords(" ".join(map(preformat, query.lower().split(" "))), top_n=100).keys()
         ]
         keywords = " ".join(keywords)
         best = 0

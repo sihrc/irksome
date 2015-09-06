@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #By Steve Hanov, 2011. Released to the public domain
 import os
-from blank.data_utils import load, OUTPUT_DIR, cache
+from blank.data_utils import load, OUTPUT_DIR, cache, SYMBOL_MAPPING
 from fuzzywuzzy import fuzz
 
 
@@ -32,6 +32,8 @@ def create_trie():
         words += key.split(" ")
     for key in set(words):
         trie.insert(key)
+    for key in SYMBOL_MAPPING.keys():
+        trie.insert(key)
 
     cache(trie, os.path.join(OUTPUT_DIR, "trie.p"))
 
@@ -47,6 +49,9 @@ def search( word ):
     for letter in trie.children:
         searchRecursive( trie.children[letter], letter, word, currentRow,
             results, maxCost )
+
+    if not results.keys():
+        return None
 
     results = results[min(results.keys())]
     if len(results) > 1:
