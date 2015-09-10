@@ -34,7 +34,7 @@ def parse_ionization(data):
     for i, element in enumerate(data["ionization energies data"]):
         if not element:
             continue
-        element_name = element.pop(u"Element Name")
+        element_name = element.pop(u"Element Name").lower()
         # Extract and cross reference references and corresponding urls
         references = element.pop("References")
         urls = element.pop("ReferencesURL")
@@ -65,7 +65,7 @@ def parse_physical_constants(data):
 def parse_isotopes(data):
     formatted = {}
     for element in data["data"]:
-        element_name = SYMBOL_MAPPING[element["Atomic Symbol"]]
+        element_name = SYMBOL_MAPPING[element["Atomic Symbol"].lower()]
         formatted[element_name] = element
     return formatted
 

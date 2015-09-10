@@ -2,6 +2,7 @@
 Processes parsed data to be in the form:
 keywords -> data desired
 """
+from collections import OrderedDict as dict
 import os
 
 from blank.data_utils import OUTPUT_DIR, ELEMENT_MAPPING, SYMBOL_MAPPING
@@ -20,13 +21,14 @@ def set_value(_dict, keys, value):
         _dict[key] = value
 
 def merge_dicts(ionization, isotopes):
-    element_data = {}
+    element_data = dict()
 
     # Processes Ionization Levels
     for elem, ion in ionization.iteritems():
         symbol = SYMBOL_MAPPING.get(elem.lower(), elem.lower())
         ion = lower_keys(ion)
         ion['protons'] = ion['atomic number']
+        ion = dict(sorted(ion.items()))
         element_data[symbol] = ion
 
 
@@ -34,13 +36,15 @@ def merge_dicts(ionization, isotopes):
     for elem, isotope in isotopes.iteritems():
         symbol = SYMBOL_MAPPING.get(elem.lower(), elem.lower())
         isotope = lower_keys(isotope)
+        isotope = dict(sorted(isotope.items()))
+        isotope["isotopes"] = isotope.pop("isotopes")
         if "standard atomic weight" in isotope:
             set_value(
                 element_data[symbol],
                 [ "atomic weight", "atomic mass", "mass", "amu", "weight"],
                 isotope["standard atomic weight"]
             )
-        # isotope_dict = {}
+
         for each in isotope["isotopes"]:
             each = lower_keys(each)
             set_value(
@@ -50,8 +54,7 @@ def merge_dicts(ionization, isotopes):
             )
             mass_number = each["mass number"]
             if symbol in element_data:
-                element_data[symbol][mass_number] = each
-
+                element_data[symbol][mass_number] = dict(sorted(each.items()))
     return element_data
 
 def get_the_big_dict(data, values = ""):
@@ -69,7 +72,11 @@ def get_the_big_dict(data, values = ""):
             except:
                 pass
         else:
-            result.update(get_the_big_dict(value, values=str_key))
+            res = get_the_big_dict(value, values=str_key)
+            res = dict(sorted(res.items()))
+            if "isotopes" in res:
+                res["isotopes"] = res.pop("isotopes")
+            result.update(res)
 
     result = dict((key.strip().lower().replace("  ", " ").replace("symbol", "").replace("(", "").replace(")", ""), value) for key, value in result.iteritems())
     return dict((" ".join(sorted(set(key.split(" ")))), value) for key, value in result.iteritems())
@@ -94,7 +101,7 @@ def parse_out_isotopes(data):
 if __name__ == "__main__":
     result = merge_dicts(
         load(os.path.join(OUTPUT_DIR, "atomic_ionization_output.p")),
-        load(os.path.join(OUTPUT_DIR,"atomic_weight_compositions.p"))
+        load(os.path.join(OUTPUT_DIR, "atomic_weight_compositions.p"))
     )
 
     look_up = get_the_big_dict(parse_out_isotopes(result))
